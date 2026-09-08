@@ -1,4 +1,5 @@
 #include "shaderclass.h"
+#include <cstring>
 
 std::string getFileContents(const char* fileName)
 {
@@ -8,7 +9,7 @@ std::string getFileContents(const char* fileName)
         std::string contents;
         in.seekg(0, std::ios::end);
         contents.resize(in.tellg());
-        in.seekg(0,std::ios::beg);
+        in.seekg(0, std::ios::beg);
         in.read(&contents[0], contents.size());
         in.close();
         return contents;
@@ -19,7 +20,7 @@ std::string getFileContents(const char* fileName)
 Shader::Shader(const char* vertexFilePath, const char* fragmentFilePath)
 {
     std::string vertexCode = getFileContents(vertexFilePath);
-    std:: string fragmentCode = getFileContents(fragmentFilePath);
+    std::string fragmentCode = getFileContents(fragmentFilePath);
 
     const char* vertexSource = vertexCode.c_str();
     const char* fragmentSource = fragmentCode.c_str();
@@ -64,22 +65,23 @@ void Shader::compileErrors(unsigned int shader, const char* type)
 {
     GLint hasCompiled;
     char infoLog[1024];
-    if (type != "PROGRAM")
+
+    if (std::strcmp(type, "PROGRAM") != 0)
     {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &hasCompiled);
         if (hasCompiled == GL_FALSE)
         {
-            glGetShaderInfoLog(shader,1024, NULL, infoLog);
-            std::cout << "Shader compilation error for : " << type << "\n" << std::endl;
+            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+            std::cout << "Shader compilation error for: " << type << "\n" << infoLog << std::endl;
         }
     }
     else
     {
-        glGetProgramiv(shader, GL_COMPILE_STATUS, &hasCompiled);
+        glGetProgramiv(shader, GL_LINK_STATUS, &hasCompiled);
         if (hasCompiled == GL_FALSE)
         {
             glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "Shader linking error for : " << type << "\n" << std::endl;
+            std::cout << "Shader linking error for: " << type << "\n" << infoLog << std::endl;
         }
     }
 }
