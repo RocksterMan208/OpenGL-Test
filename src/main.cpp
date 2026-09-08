@@ -15,9 +15,10 @@
 #include"vbo.h"
 #include"inputs.hpp"
 #include"texture.h"
+#include"camera.h"
 
-#define SCR_W 800
-#define SCR_H 600
+#define SCR_W 1920
+#define SCR_H 1080
 
 float FOVY = 45.0f;
 
@@ -38,10 +39,10 @@ int main()
     // Positions --------- Colors in normalized RGB ------ Tex Coords
 	{
 		-0.5f, 0.0f, 0.5f,     1.0f, 0.0f, 0.0f,       0.0f, 0.0f,
-        -0.5f, 0.0f, -0.5f,      1.0f, 0.0f, 0.0f,       5.0f, 0.0f,
+        -0.5f, 0.0f, -0.5f,      1.0f, 0.0f, 0.0f,       1.0f, 0.0f,
         0.5f, 0.0f, -0.5f,       1.0f, 0.0f, 0.0f,       0.0f, 0.0f,
-        0.5f, 0.0f, 0.5f,      1.0f, 0.0f, 0.0f,       5.0f, 0.0f,
-        0.0f, 0.8f, 0.0f,      1.0f, 0.0f, 0.0f,       2.5f, 5.0f,
+        0.5f, 0.0f, 0.5f,      1.0f, 0.0f, 0.0f,       1.0f, 0.0f,
+        0.0f, 0.8f, 0.0f,      1.0f, 0.0f, 0.0f,       0.5f, 5.0f,
 	};
 
     GLint indices[] = 
@@ -103,6 +104,8 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+    Camera camera(SCR_W,SCR_H, glm::vec3(0.0f,0.0f,2.0f));
+
     // Main while loop
     while (!glfwWindowShouldClose(window))
     {
@@ -115,30 +118,10 @@ int main()
 
         shaderProgram.Activate();
 
-        double crntTime = glfwGetTime();
-        if (crntTime - prevTime >= 1 /60)
-        {
-            rotation += 0.5f;
-            prevTime = crntTime;
-        }
-
-        glm::mat4 modelMatrix(1.0f);
-        glm::mat4 viewMatrix(1.0f);
-        glm::mat4 projMatrix(1.0f);
-
-        modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, -0.5f, -2.0f));
-        projMatrix = glm::perspective(static_cast<float>(glm::radians(FOVY)), SCR_W / static_cast<float>(SCR_H), 0.1f, 100.0f);
-        
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projMatrix));
+        camera.ProcessInputs(window);
+        camera.Matrix(FOVY, 1.0f, 100.f, shaderProgram, "camMatrix");
         
         //Drawing Functions
-        glUniform1f(uniID, 0.5f);
         manBox.Bind();
         VAO1.Bind();
 
