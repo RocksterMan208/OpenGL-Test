@@ -1,9 +1,9 @@
 
 # Learning OpenGL for use in 3D development
 
-It currently shows a zelda symbol with 3 different rgb values
+You can move around a pyramid with a man who is screaming..
 
-<img width="902" height="696" alt="filename" src="https://github.com/user-attachments/assets/e0d4810e-a259-481f-ad1d-e52e16f655ff" />
+<img width="1093" height="771" alt="region" src="https://github.com/user-attachments/assets/af9a927f-a245-4652-b503-a4682b9d9425" />
 
 ## To compile, have *make*, *glfw AND glm* installed then run:
 ```
