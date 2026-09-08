@@ -58,6 +58,7 @@ run: $(TARGET)
 # Remove all build files
 clean:
 	rm -rf $(BUILD_DIR)
+	rm $(TARGET)
 
 # Clean, rebuild, and run
 reset: clean
