@@ -1,9 +1,9 @@
 
 # Learning OpenGL for use in 3D development
 
-You can move around a pyramid with a man who is screaming..
+A single chunk of 16x16 of cubes of men screaming
 
-<img width="1093" height="771" alt="region" src="https://github.com/user-attachments/assets/af9a927f-a245-4652-b503-a4682b9d9425" />
+Super awesome placeholder image
 
 ## To compile, have *make*, *glfw AND glm* installed then run:
 ```
