@@ -24,12 +24,18 @@ public:
     int height;
 
     float cameraSpeed = 0.1f;
-    float cameraSens = 100.0f;
+    float cameraSens = 0.1f;
 
     Camera(int width, int height, glm::vec3 position);
 
-    void Matrix(float FOVyDeg, float nearPlane, float farPlane, Shader& shader, const char* uniform);
+    void Matrix(float FOVyDeg, float nearPlane, float farPlane, Shader& shader, const char* uniform, glm::mat4 model);
     void ProcessInputs(GLFWwindow* window);
+
+    private:
+    bool  firstMouse = true;
+    double lastX = 0.0;
+    double lastY = 0.0;
+    float lastFrameTime = 0.0f; // for delta time, if you don't already track this elsewhere
 };
 
 #endif
