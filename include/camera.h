@@ -26,6 +26,8 @@ public:
     float cameraSpeed = 0.1f;
     float cameraSens = 0.1f;
 
+    float yaw;
+
     Camera(int width, int height, glm::vec3 position);
 
     void Matrix(float FOVyDeg, float nearPlane, float farPlane, Shader& shader, const char* uniform, glm::mat4 model);

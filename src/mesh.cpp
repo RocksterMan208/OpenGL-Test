@@ -1,18 +1,20 @@
-#include"mesh.h"
+#include "mesh.h"
+#include <unordered_set>
+#include <functional>
 
-constexpr GLfloat vertexListCube[] = {
+const GLfloat vertexListCube[] = {
     // positions          // normals           // texcoords
     // Front face (+Z)
     -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,
 
     // Back face (-Z)
-     0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.0f, 0.0f,
     -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  1.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.0f, 1.0f,
+    0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,  0.0f, 1.0f,
 
     // Left face (-X)
     -0.5f, -0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
@@ -21,21 +23,21 @@ constexpr GLfloat vertexListCube[] = {
     -0.5f,  0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
 
     // Right face (+X)
-     0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
 
     // Top face (+Y)
     -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+    0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
 
     // Bottom face (-Y)
     -0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,  1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+    0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,  1.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,  0.0f, 1.0f,
 };
 
@@ -46,6 +48,19 @@ constexpr GLuint indicesListCube[] = {
     12, 13, 14,  14, 15, 12,  // right
     16, 17, 18,  18, 19, 16,  // top
     20, 21, 22,  22, 23, 20,  // bottom
+};
+
+// Same order as the face blocks in vertexListCube above: front, back, left, right, top, bottom
+static const glm::ivec3 faceNormals[6] = {
+    {0, 0, 1}, {0, 0, -1}, {-1, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, -1, 0}
+};
+
+struct IVec3Hash
+{
+    size_t operator()(const glm::ivec3& v) const
+    {
+        return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y) << 1) ^ (std::hash<int>()(v.z) << 2);
+    }
 };
 
 Mesh::Mesh(enum MeshType type)
@@ -59,6 +74,19 @@ Mesh::Mesh(enum MeshType type)
             indices.push_back(indicesListCube[i]);
     }
 
+    setupMesh();
+}
+
+Mesh::Mesh(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds)
+{
+    vertex = verts;
+    indices = inds;
+
+    setupMesh();
+}
+
+void Mesh::setupMesh()
+{
     vao.Bind();
 
     vbo = new VBO(vertex.data(), vertex.size() * sizeof(GLfloat));
@@ -100,4 +128,53 @@ std::vector<glm::vec3> genChunk(int chunkX, int chunkY, int chunkZ)
     }
 
     return output;
+}
+
+Mesh buildChunkMesh(int chunkX, int chunkY, int chunkZ)
+{
+    std::vector<glm::vec3> blockPositions = genChunk(chunkX, chunkY, chunkZ);
+
+    std::unordered_set<glm::ivec3, IVec3Hash> blocks;
+    for (const auto& p : blockPositions) blocks.insert(glm::ivec3((int)p.x, (int)p.y, (int)p.z));
+
+    std::vector<GLfloat> verts;
+    std::vector<GLuint> inds;
+
+    for (const auto& p : blockPositions)
+    {
+        glm::ivec3 b((int)p.x, (int)p.y, (int)p.z);
+
+        for (int face = 0; face < 6; face++)
+        {
+            glm::ivec3 neighbor = b + faceNormals[face];
+
+            if (blocks.count(neighbor) > 0)
+                continue;
+
+            GLuint base = (GLuint)(verts.size() / 8);
+
+            for (int v = 0; v < 4; v++)
+            {
+                int srcIndex = (face * 4 + v) * 8;
+
+                verts.push_back(vertexListCube[srcIndex + 0] + p.x);
+                verts.push_back(vertexListCube[srcIndex + 1] + p.y);
+                verts.push_back(vertexListCube[srcIndex + 2] + p.z);
+                verts.push_back(vertexListCube[srcIndex + 3]);
+                verts.push_back(vertexListCube[srcIndex + 4]);
+                verts.push_back(vertexListCube[srcIndex + 5]);
+                verts.push_back(vertexListCube[srcIndex + 6]);
+                verts.push_back(vertexListCube[srcIndex + 7]);
+            }
+
+            inds.push_back(base + 0);
+            inds.push_back(base + 1);
+            inds.push_back(base + 2);
+            inds.push_back(base + 2);
+            inds.push_back(base + 3);
+            inds.push_back(base + 0);
+        }
+    }
+
+    return Mesh(verts, inds);
 }

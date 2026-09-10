@@ -18,6 +18,7 @@
 #include"texture.h"
 #include"camera.h"
 #include"mesh.h"
+#include"chunk.h"
 
 #define SCR_W 1920
 #define SCR_H 1080
@@ -33,7 +34,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(SCR_W, SCR_H, "LearnOpenGL", NULL, NULL);
-
     CheckForWindow(window);
 
     glfwMakeContextCurrent(window);
@@ -44,9 +44,16 @@ int main()
 
     Shader shaderProgram("shaders/vertex.vert", "shaders/fragment.frag");
 
-    Mesh cubeMesh(CUBE);
+    std::vector<Chunk> chunks;
+    for (int x = 0; x < 4; x++)
+    {
+        for (int z = 0; z < 4; z++)
+        {
+            chunks.emplace_back(16,32,16,glm::ivec3(16.0f*x, -32.0f, 16.0f*z));
+        }
+    }
 
-    Texture manBox("./resources/images/test.jpg", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
+    Texture manBox("./resources/images/images.jpg", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
     manBox.texUnit(shaderProgram, "tex0", 0);
 
     glEnable(GL_DEPTH_TEST);
@@ -54,9 +61,6 @@ int main()
     glCullFace(GL_BACK);
 
     Camera camera(SCR_W, SCR_H, glm::vec3(0.0f, 0.0f, 2.0f));
-
-    std::vector<glm::vec3> positions = genChunk(16,16,16);
-
 
     while (!glfwWindowShouldClose(window))
     {
@@ -70,12 +74,13 @@ int main()
 
         manBox.Bind();
 
-        for (const auto& pos : positions)
-        {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+        glm::mat4 model = glm::mat4(1.0f);
 
-            camera.Matrix(FOVY, 0.1f, 100.0f, shaderProgram, "camMatrix", model);
-            cubeMesh.Draw();
+        camera.Matrix(FOVY, 0.1f, 100.0f, shaderProgram, "camMatrix", model);
+        
+        for (auto& c : chunks)
+        {
+            c.draw();
         }
 
         glfwSwapBuffers(window);

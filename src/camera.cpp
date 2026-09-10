@@ -16,28 +16,28 @@ void Camera::Matrix(float FOVyDeg, float nearPlane, float farPlane, Shader& shad
     projection = glm::perspective(static_cast<float>(glm::radians(FOVyDeg)), static_cast<float>(width) / static_cast<float>(height), nearPlane, farPlane);
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(projection * view * model));
-
 }
 
 void Camera::ProcessInputs(GLFWwindow* window)
 {
+    glm::vec3 forward = glm::normalize(glm::vec3(direction.x, 0.0f, direction.z));
+    glm::vec3 right   = glm::vec3(-forward.z, 0.0f, forward.x);
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        position.x += cameraSpeed * direction.x;
-        position.z += cameraSpeed * direction.z;
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        position += cameraSpeed * -glm::normalize(glm::cross(direction, upDir));
+        position += cameraSpeed * forward;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        position.x += cameraSpeed * -direction.x;
-        position.z += cameraSpeed * -direction.z;
+        position += cameraSpeed * -forward;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        position += cameraSpeed * -right;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        position += cameraSpeed * glm::normalize(glm::cross(direction, upDir));
+        position += cameraSpeed * right;
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
@@ -50,7 +50,7 @@ void Camera::ProcessInputs(GLFWwindow* window)
 
     // Setting up the camera rotation relative towards the mouse movement detected on the screen
 
-    glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
