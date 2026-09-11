@@ -1,39 +1,113 @@
-#ifndef CHUNK_CLASS_H
-#define CHUNK_CLASS_H
+#pragma once
 
-#include<unordered_set>
-#include<glm/glm.hpp>
-#include"mesh.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <vector>
+#include <cstdint>
+#include<atomic>
+#include<thread>
 
-enum blockType {GRASS_BLOCK, DIRT_BLOCK};
+#include "FastNoiseLite.h"
 
-struct Ivec3Hash
+extern float intensity;
+
+enum blockType : uint8_t
 {
-    size_t operator()(const glm::ivec3& v) const 
-    {
-        return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y) << 1) ^ (std::hash<int>()(v.z) << 2);
-    }
+    voxel_air,
+    voxel_grass,
+    voxel_dirt,
+    voxel_stone
+};
+
+struct Vertex
+{
+    glm::vec3 pos;
+    glm::vec3 norm;
+    glm::vec2 uv;
+};
+
+struct ChunkMesh
+{
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 };
 
 class Chunk
 {
-    public:
-        Chunk(int sizeX, int sizeY, int sizeZ, glm::ivec3 offset = glm::ivec3(0.0f));
+public:
+    std::vector<blockType> blocks;
 
-        void setBlock(glm::ivec3 pos, bool solid);
-        bool isSolid(glm::ivec3 pos);
+    int getIndex(glm::ivec3 pos) const;
 
-        void rebuild();
-        void draw();
+    Chunk(
+        int sizeX,
+        int sizeY,
+        int sizeZ,
+        glm::ivec3 offset = glm::ivec3(0)
+    );
 
-    private:
-        int sizeX, sizeY, sizeZ;
-        glm::ivec3 offset = glm::ivec3(0.0f);
-        std::unordered_set<glm::ivec3, Ivec3Hash> blocks;
-        Mesh* mesh = nullptr;
-        void removeBlock(glm::ivec3 pos);
-        
-        bool reset = false;
+    void generate();
+
+    void setBlock(glm::ivec3 pos, blockType block);
+
+    ChunkMesh genMesh() const;
+
+    bool isSolid(glm::ivec3 pos) const;
+
+    void addFace(
+        ChunkMesh& mesh,
+        const glm::ivec3& blockPos,
+        int face
+    ) const;
+
+private:
+    int sizeX;
+    int sizeY;
+    int sizeZ;
+
+    glm::ivec3 offset;
+
+    FastNoiseLite noise;
+
+    blockType getBlock(glm::ivec3 pos) const;
 };
 
-#endif
+class ChunkRenderMesh
+{
+public:
+    ChunkRenderMesh();
+    ~ChunkRenderMesh();
+
+    void upload(const ChunkMesh& mesh);
+    void draw();
+
+private:
+    GLuint VAO;
+    GLuint VBO;
+    GLuint EBO;
+    GLsizei indexCount;
+};
+
+class World
+{
+    public:
+    std::vector<Chunk> chunks;
+    std::vector<ChunkRenderMesh> renderMeshes;
+
+    World(
+        glm::vec3 chunkSize = glm::vec3(16.0f, 32.0f, 16.0f),
+        glm::ivec2 num = glm::ivec2(1)
+    );
+
+    ~World();
+
+    void generate();
+    void buildMeshes();
+    void draw();
+
+    private:
+
+    std::thread worker;
+    std::atomic<bool> generating = false;
+};

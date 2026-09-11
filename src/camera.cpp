@@ -1,5 +1,7 @@
 #include "camera.h"
 
+extern int mouseEnabled;
+
 Camera::Camera(int width, int height, glm::vec3 Position)
 {
     Camera::width = width;
@@ -50,32 +52,34 @@ void Camera::ProcessInputs(GLFWwindow* window)
 
     // Setting up the camera rotation relative towards the mouse movement detected on the screen
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    double mouseX, mouseY;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-
-    if (firstMouse)
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    if (mouseEnabled)
     {
+        double mouseX, mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+
+        if (firstMouse)
+        {
+            lastX = mouseX;
+            lastY = mouseY;
+            firstMouse = false;
+        }
+
+        float mouseXRate = cameraSens * static_cast<float>(mouseX - lastX);
+        float mouseYRate = cameraSens * static_cast<float>(mouseY - lastY);
         lastX = mouseX;
         lastY = mouseY;
-        firstMouse = false;
+
+        // Pitch: rotate around the right vector, driven by vertical mouse movement
+        glm::vec3 newDir = glm::rotate(direction, glm::radians(-mouseYRate), glm::normalize(glm::cross(direction, upDir)));
+
+        float angleToUp = glm::degrees(glm::angle(newDir, upDir));
+        if (angleToUp > 5.0f && angleToUp < 175.0f)
+        {
+            direction = newDir;
+        }
+
+        // Yaw: rotate around world up, driven by horizontal mouse movement
+        direction = glm::rotate(direction, glm::radians(-mouseXRate), upDir);
     }
-
-    float mouseXRate = cameraSens * static_cast<float>(mouseX - lastX);
-    float mouseYRate = cameraSens * static_cast<float>(mouseY - lastY);
-    lastX = mouseX;
-    lastY = mouseY;
-
-    // Pitch: rotate around the right vector, driven by vertical mouse movement
-    glm::vec3 newDir = glm::rotate(direction, glm::radians(-mouseYRate), glm::normalize(glm::cross(direction, upDir)));
-
-    float angleToUp = glm::degrees(glm::angle(newDir, upDir));
-    if (angleToUp > 5.0f && angleToUp < 175.0f)
-    {
-        direction = newDir;
-    }
-
-    // Yaw: rotate around world up, driven by horizontal mouse movement
-    direction = glm::rotate(direction, glm::radians(-mouseXRate), upDir);
 }

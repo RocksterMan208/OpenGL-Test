@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cmath>
 #include <stb/stb_image.h>
+#include <thread>
 
 
 #include"shaderclass.h"
@@ -18,13 +19,15 @@
 #include"inputs.hpp"
 #include"texture.h"
 #include"camera.h"
-#include"mesh.h"
 #include"chunk.h"
 
 #define SCR_W 1920
 #define SCR_H 1080
 
 float FOVY = 45.0f;
+
+float intensity = 0.165f;
+int mouseEnabled = 1;
 
 int main()
 {
@@ -45,14 +48,6 @@ int main()
 
     Shader shaderProgram("shaders/vertex.vert", "shaders/fragment.frag");
 
-    std::vector<Chunk> chunks;
-    for (int x = -2; x < 2; x++)
-    {
-        for (int z = -2; z < 2; z++)
-        {
-            chunks.emplace_back(16,32,16,glm::ivec3(16.0f*x, -32.0f, 16.0f*z));
-        }
-    }
 
     Texture manBox("./resources/images/images.jpg", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
     manBox.texUnit(shaderProgram, "tex0", 0);
@@ -61,14 +56,20 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    Camera camera(SCR_W, SCR_H, glm::vec3(0.0f, 2.0f, 2.0f));
+    Camera camera(SCR_W, SCR_H, glm::vec3(0.0f, 34.0f, 0.0f));
 
-    //initImGUI(window);    ImGUI can be implemented later
+    World world(glm::vec3(16.0f,256.0f,16.0f), glm::ivec2(12,12));
+    world.generate();
+    world.buildMeshes();
+
+    initImGUI(window);    //ImGUI can be implemented later
     int wasPressed = 0;
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     while (!glfwWindowShouldClose(window))
     {
-        //startImGUIFrame();    ImGUI can be implemented later
+        startImGUIFrame(&camera);    //ImGUI can be implemented later
         
         glfwPollEvents();
         ProcessInputs(window);
@@ -79,23 +80,26 @@ int main()
         shaderProgram.Activate();
         camera.ProcessInputs(window);
 
+        cursorToggle(window, &mouseEnabled);
+
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+        {
+            world.generate();
+            world.buildMeshes();
+        }
+
         manBox.Bind();
 
         glm::mat4 model = glm::mat4(1.0f);
 
-        camera.Matrix(FOVY, 0.1f, 100.0f, shaderProgram, "camMatrix", model);
-        
-        for (auto& c : chunks)
-        {
-            c.draw();
-        }
+        camera.Matrix(FOVY, 0.1f, 1000.0f, shaderProgram, "camMatrix", model);
+        world.draw();
 
-        //renderImGUI();    ImGUI can be implemented later
-
+        renderImGUI();    //ImGUI can be implemented later
         glfwSwapBuffers(window);
     }
 
-    //stopImGUI();    ImGUI can be implemented later
+    stopImGUI();    //ImGUI can be implemented later
     manBox.Delete();
     shaderProgram.Delete();
     glfwDestroyWindow(window);
