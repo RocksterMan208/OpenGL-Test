@@ -9,7 +9,6 @@
 
 int wasPressed = 0;
 int lockedMouse = 1;
-extern int chunksX, chunksY;
 
 
 size_t numBlocks = 0;
@@ -57,8 +56,6 @@ void startImGUIFrame(Camera* camera)
     ImGui::SliderFloat("Factor", &intensity, 1.0f, 0.0f);
 
     ImGui::Text("Chunk Manipulation: NOT IMPLEMENTED");
-    ImGui::SliderInt("Chunks X:", &chunksX, 0, 60);
-    ImGui::SliderInt("Chunks Y:", &chunksY, 0, 60);
 
     ImGui::End();
 }
