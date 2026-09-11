@@ -10,6 +10,7 @@
 #include <cmath>
 #include <stb/stb_image.h>
 
+
 #include"shaderclass.h"
 #include"vao.h"
 #include"ebo.h"
@@ -45,9 +46,9 @@ int main()
     Shader shaderProgram("shaders/vertex.vert", "shaders/fragment.frag");
 
     std::vector<Chunk> chunks;
-    for (int x = 0; x < 4; x++)
+    for (int x = -2; x < 2; x++)
     {
-        for (int z = 0; z < 4; z++)
+        for (int z = -2; z < 2; z++)
         {
             chunks.emplace_back(16,32,16,glm::ivec3(16.0f*x, -32.0f, 16.0f*z));
         }
@@ -60,10 +61,16 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    Camera camera(SCR_W, SCR_H, glm::vec3(0.0f, 0.0f, 2.0f));
+    Camera camera(SCR_W, SCR_H, glm::vec3(0.0f, 2.0f, 2.0f));
+
+    //initImGUI(window);    ImGUI can be implemented later
+    int wasPressed = 0;
 
     while (!glfwWindowShouldClose(window))
     {
+        //startImGUIFrame();    ImGUI can be implemented later
+        
+        glfwPollEvents();
         ProcessInputs(window);
 
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -83,10 +90,12 @@ int main()
             c.draw();
         }
 
+        //renderImGUI();    ImGUI can be implemented later
+
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
+    //stopImGUI();    ImGUI can be implemented later
     manBox.Delete();
     shaderProgram.Delete();
     glfwDestroyWindow(window);
